@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.9/css/weather-icons.min.css">
+    <style>
+        body {
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            text-align: center;
+            margin-top: 50px;
+        }
+        .card {
+            border: none;
+            background-color: #fff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        .forecast {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px;
+        }
+        h1 {
+            color: #333;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button.btn-primary {
+            background-color: #007bff;
+            border: none;
+        }
+        button.btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .wi {
+            font-size: 48px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Weather App</h1>
+        <div class="form-group">
+            <input type="text" class="form-control" id="city" placeholder="Enter City Name (e.g. London)">
+        </div>
+        <button type="button" class="btn btn-primary" id="getWeather">Get Weather</button>
+        <div id="weatherInfo" class="mt-4">
+            <p>Enter a city name and click "Get Weather" to fetch weather data.</p>
+        </div>
+    </div>
+
+    <script>
+        const apiKey = '5e328974f3a2e87e197e3af47d0a191b';
+        const currentWeatherUrl = 'https://api.openweathermap.org/data/2.5/weather?q=';
+        const forecastUrl = 'https://api.openweathermap.org/data/2.5/forecast?q=';
+
+        const getWeatherData = async () => {
+            const city = document.getElementById('city').value;
+            const weatherInfo = document.getElementById('weatherInfo');
+
+            if (city) {
+                try {
+                    const currentResponse = await fetch(currentWeatherUrl + city + '&appid=' + apiKey);
+                    const currentData = await currentResponse.json();
+
+                    const forecastResponse = await fetch(forecastUrl + city + '&appid=' + apiKey);
+                    const forecastData = await forecastResponse.json();
+                    const dailyForecasts = forecastData.list.filter((forecast, index) => index % 8 === 0);
+
+                    let output = '';
+
+            // Display current weather as a Bootstrap card
+            
+                    output += `<h2 class="card-title">Current Weather for ${city}</h2>`;
+                    output += `<i class="wi wi-owm-${currentData.weather[0].id} wi" style="font-size: 72px;"></i>`;
+                    output += `<p class="card-text" style="font-size: 24px;">${currentData.weather[0].description}</p>`;
+                    output += `<p class="card-text" style="font-size: 32px;">${(currentData.main.temp - 273.15).toFixed(2)}°C</p>`;
+                    output += `<p class="card-text">${currentData.main.humidity}% <i class="wi wi-humidity" style="font-size: 32px;"></i></p>`;
+                    output += `<p class="card-text">${currentData.wind.speed} m/s <i class="wi wi-strong-wind" style="font-size: 32px;"></i></p>`;
+                    output += '</div>';
+                    output += '</div>';
+
+                    output += '<div class="card">';
+                    output += '<div class="card-body">';
+                    output += `<h2>5-Day Weather Forecast for ${city}</h2>`;
+                    output += '<div class="forecast">';
+                    dailyForecasts.forEach(forecast => {
+                        const date = new Date(forecast.dt * 1000);
+                        const description = forecast.weather[0].description;
+                        const temperature = (forecast.main.temp - 273.15).toFixed(2);
+                        const iconClass = `wi wi-owm-${forecast.weather[0].id}`;
+                        output += `
+                            <div class="forecast-item">
+                                <p>${date.toDateString()}</p>
+                                <i class="${iconClass} wi"></i>
+                                <p>${description}</p>
+                                <p>Temperature: ${temperature}°C</p>
+                            </div>
+                        `;
+                    });
+                    output += '</div>';
+
+                    weatherInfo.innerHTML = output;
+                } catch (error) {
+                    weatherInfo.innerHTML = `<p>Error: ${error.message}</p>`;
+                }
+            } else {
+                weatherInfo.innerHTML = `<p>Please enter a city name.</p>`;
+            }
+        };
+
+        document.getElementById('getWeather').addEventListener('click', getWeatherData);
+    </script>
+</body>
+</html>
